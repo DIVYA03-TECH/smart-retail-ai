@@ -2,52 +2,51 @@ from tensorflow.keras.models import load_model
 from transformers import pipeline
 import cv2
 
-from app.services.chatbot_service import MODEL_NAME
+product_model = None
+sentiment_model = None
+face_detector = None
+face_recognizer = None
 
-# -----------------------------
-# Product Classification Model
-# -----------------------------
 
-product_model = load_model(
-    "app/models/product_classifier.keras"
-)
+def get_product_model():
+    global product_model
 
-# -----------------------------
-# Sentiment Model
-# -----------------------------
+    if product_model is None:
+        product_model = load_model(
+            "app/models/product_classifier.keras"
+        )
 
-sentiment_model = pipeline(
-    "sentiment-analysis",
-    model="cardiffnlp/twitter-roberta-base-sentiment-latest"
-)
+    return product_model
 
-# -----------------------------
-# Face Recognition
-# -----------------------------
 
-face_detector = cv2.CascadeClassifier(
-    cv2.data.haarcascades +
-    "haarcascade_frontalface_default.xml"
-)
+def get_sentiment_model():
+    global sentiment_model
 
-face_recognizer = cv2.face.LBPHFaceRecognizer_create()
+    if sentiment_model is None:
+        sentiment_model = pipeline(
+            "sentiment-analysis",
+            model="cardiffnlp/twitter-roberta-base-sentiment-latest"
+        )
 
-# -----------------------------
-# Chatbot
-# -----------------------------
+    return sentiment_model
 
-chatbot_model = MODEL_NAME
 
-# -----------------------------
-# Getter
-# -----------------------------
+def get_face_detector():
+    global face_detector
 
-def get_models():
+    if face_detector is None:
+        face_detector = cv2.CascadeClassifier(
+            cv2.data.haarcascades +
+            "haarcascade_frontalface_default.xml"
+        )
 
-    return {
-        "product_model": product_model,
-        "sentiment_model": sentiment_model,
-        "face_detector": face_detector,
-        "face_recognizer": face_recognizer,
-        "chatbot_model": chatbot_model,
-    }
+    return face_detector
+
+
+def get_face_recognizer():
+    global face_recognizer
+
+    if face_recognizer is None:
+        face_recognizer = cv2.face.LBPHFaceRecognizer_create()
+
+    return face_recognizer

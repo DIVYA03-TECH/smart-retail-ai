@@ -1,14 +1,8 @@
 import numpy as np
 import cv2
-from tensorflow.keras.models import load_model
-from app.services.dashboard_service import add_product, add_face
-# Load model once
-from app.services.pipeline import get_models
 
-models = get_models()
-
-model = models["product_model"]
-# model = load_model("app/models/product_classifier.keras")
+from app.services.dashboard_service import add_product
+from app.services.pipeline import get_product_model
 
 class_names = [
     "T-shirt/top",
@@ -25,6 +19,10 @@ class_names = [
 
 
 def classify_product(image_bytes):
+
+    # models = get_models()
+    # model = models["product_model"]
+    model = get_product_model()
     image = np.frombuffer(image_bytes, np.uint8)
     image = cv2.imdecode(image, cv2.IMREAD_GRAYSCALE)
 
@@ -36,10 +34,12 @@ def classify_product(image_bytes):
 
     predicted_index = np.argmax(prediction)
     confidence = float(np.max(prediction) * 100)
+
     add_product(
-    class_names[predicted_index],
-    round(confidence, 2)
-)
+        class_names[predicted_index],
+        round(confidence, 2)
+    )
+
     return {
         "status": "Success",
         "predicted_class": class_names[predicted_index],

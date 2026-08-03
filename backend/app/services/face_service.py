@@ -20,13 +20,17 @@ TRAINER_DIR.mkdir(exist_ok=True)
 # Face Detector
 # -----------------------------
 
-from app.services.pipeline import get_models
+# from app.services.pipeline import get_models
 
-models = get_models()
+# models = get_models()
 
-CASCADE = models["face_detector"]
+# CASCADE = models["face_detector"]
 
-recognizer = models["face_recognizer"]
+# recognizer = models["face_recognizer"]
+from app.services.pipeline import (
+    get_face_detector,
+    get_face_recognizer,
+)
 
 # -----------------------------
 # LBPH Recognizer
@@ -65,7 +69,7 @@ def save_labels(labels):
 def detect_face(image):
 
     gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
-
+    CASCADE = get_face_detector()
     faces = CASCADE.detectMultiScale(
         gray,
         scaleFactor=1.2,
@@ -88,7 +92,7 @@ def detect_face(image):
 # -----------------------------
 
 def train_model():
-
+    recognizer = get_face_recognizer()
     faces = []
     ids = []
 
@@ -211,7 +215,7 @@ def register_face(person_name, files):
 # -----------------------------
 
 def recognize_face(file):
-
+    recognizer = get_face_recognizer()
     # Check if trained model exists
     if not TRAINER_FILE.exists():
 
