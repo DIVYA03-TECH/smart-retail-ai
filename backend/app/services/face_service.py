@@ -1,9 +1,14 @@
 import cv2
-import os
 import json
 import numpy as np
 from pathlib import Path
+
 from app.services.dashboard_service import add_face
+from app.services.pipeline import (
+    get_face_detector,
+    get_face_recognizer,
+)
+
 # -----------------------------
 # Paths
 # -----------------------------
@@ -16,48 +21,19 @@ LABELS_FILE = Path("labels.json")
 DATASET_DIR.mkdir(exist_ok=True)
 TRAINER_DIR.mkdir(exist_ok=True)
 
-# -----------------------------
-# Face Detector
-# -----------------------------
 
-# from app.services.pipeline import get_models
-
-# models = get_models()
-
-# CASCADE = models["face_detector"]
-
-# recognizer = models["face_recognizer"]
-from app.services.pipeline import (
-    get_face_detector,
-    get_face_recognizer,
-)
-
-# -----------------------------
-# LBPH Recognizer
-# -----------------------------
-
-try:
-    recognizer = cv2.face.LBPHFaceRecognizer_create()
-except AttributeError:
-    raise RuntimeError(
-        "OpenCV Contrib is not installed. Install opencv-contrib-python."
-    )
 # -----------------------------
 # Labels
 # -----------------------------
 
 def load_labels():
-
     if LABELS_FILE.exists():
-
         with open(LABELS_FILE, "r") as f:
             return json.load(f)
-
     return {}
 
 
 def save_labels(labels):
-
     with open(LABELS_FILE, "w") as f:
         json.dump(labels, f, indent=4)
 
@@ -67,10 +43,11 @@ def save_labels(labels):
 # -----------------------------
 
 def detect_face(image):
-
     gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
-    CASCADE = get_face_detector()
-    faces = CASCADE.detectMultiScale(
+
+    cascade = get_face_detector()
+
+    faces = cascade.detectMultiScale(
         gray,
         scaleFactor=1.2,
         minNeighbors=5,
@@ -82,24 +59,26 @@ def detect_face(image):
 
     x, y, w, h = faces[0]
 
-    face = gray[y:y+h, x:x+w]
-
+    face = gray[y:y + h, x:x + w]
     face = cv2.resize(face, (200, 200))
 
     return face
+
+
 # -----------------------------
 # Train Model
 # -----------------------------
 
 def train_model():
+
     recognizer = get_face_recognizer()
+
     faces = []
     ids = []
 
     labels = {}
     current_id = 0
 
-    # Loop through every person folder
     for person_dir in DATASET_DIR.iterdir():
 
         if not person_dir.is_dir():
@@ -107,7 +86,6 @@ def train_model():
 
         labels[str(current_id)] = person_dir.name
 
-        # Read all images
         for image_path in person_dir.glob("*.jpg"):
 
             image = cv2.imread(str(image_path))
@@ -125,9 +103,7 @@ def train_model():
 
         current_id += 1
 
-    # No training data
     if len(faces) == 0:
-        
         return {
             "status": "Failed",
             "message": "No face images found."
@@ -137,17 +113,17 @@ def train_model():
         faces,
         np.array(ids, dtype=np.int32)
     )
-    print("Training started...")
 
     recognizer.save(str(TRAINER_FILE))
 
     save_labels(labels)
-    
+
     return {
         "status": "Success",
         "people": len(labels),
         "images": len(faces)
     }
+
 
 # -----------------------------
 # Register Face
@@ -185,22 +161,19 @@ def register_face(person_name, files):
         if image is None:
             continue
 
-        file_path = person_dir / f"{index}.jpg"
-
         cv2.imwrite(
-            str(file_path),
+            str(person_dir / f"{index}.jpg"),
             image
         )
 
         saved += 1
 
     if saved == 0:
-
         return {
             "status": "Failed",
             "message": "No valid images uploaded."
         }
-    print(f"Saved {saved} images for {person_name}")
+
     training_result = train_model()
 
     return {
@@ -210,21 +183,22 @@ def register_face(person_name, files):
         "images_saved": saved,
         "training": training_result
     }
+
+
 # -----------------------------
 # Recognize Face
 # -----------------------------
 
 def recognize_face(file):
-    recognizer = get_face_recognizer()
-    # Check if trained model exists
-    if not TRAINER_FILE.exists():
 
+    if not TRAINER_FILE.exists():
         return {
             "status": "Failed",
             "message": "No trained model found. Register a face first."
         }
 
-        recognizer.read(str(TRAINER_FILE))
+    recognizer = get_face_recognizer()
+    recognizer.read(str(TRAINER_FILE))
 
     labels = load_labels()
 
@@ -256,7 +230,6 @@ def recognize_face(file):
 
     predicted_id, confidence = recognizer.predict(face)
 
-    # Lower confidence = better match in LBPH
     if confidence > 70:
 
         add_face(

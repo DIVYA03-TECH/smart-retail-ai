@@ -15,25 +15,17 @@ app = FastAPI(
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=[
-        "http://localhost:5173",
-        "http://127.0.0.1:5173",
-        "*"  # remove later if you want stricter CORS
-    ],
+    allow_origins=["*"],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
 
-# Always keep health enabled
 app.include_router(health.router)
-
-# Enable ONE router, deploy, then enable the next.
-
-# app.include_router(chatbot.router)
-# app.include_router(nlp.router)
-# app.include_router(dashboard.router)
-# app.include_router(vision_router)
+app.include_router(chatbot.router)
+app.include_router(nlp.router)
+app.include_router(dashboard.router)
+app.include_router(vision_router)
 
 @app.get("/")
 def home():
