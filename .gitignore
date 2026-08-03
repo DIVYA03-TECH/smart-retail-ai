@@ -1,0 +1,23 @@
+# Python
+backend/venv/
+venv/
+__pycache__/
+*.pyc
+
+# Datasets
+datasets/
+
+# Face data
+backend/face_dataset/
+backend/face_db/
+
+# Generated files
+backend/trainer/
+backend/data/dashboard.json
+backend/labels.json
+
+# Node
+frontend/node_modules/
+
+# Environment
+.env

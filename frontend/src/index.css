@@ -1,0 +1,75 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  html {
+    scroll-behavior: smooth;
+  }
+
+  body {
+    @apply bg-canvas text-ink font-body antialiased;
+  }
+
+  h1,
+  h2,
+  h3,
+  h4 {
+    @apply font-display text-ink;
+  }
+
+  /* Consistent, accessible focus ring app-wide, replacing the default outline */
+  a:focus-visible,
+  button:focus-visible,
+  input:focus-visible,
+  textarea:focus-visible {
+    @apply outline-none ring-2 ring-signal-500 ring-offset-2 ring-offset-canvas;
+  }
+
+  /* Respect users who've asked their OS to reduce motion */
+  @media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+      animation-duration: 0.001ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: 0.001ms !important;
+      scroll-behavior: auto !important;
+    }
+  }
+
+  /* Custom scrollbar — thin, brand-tinted, matches the SaaS aesthetic */
+  ::-webkit-scrollbar {
+    width: 10px;
+    height: 10px;
+  }
+  ::-webkit-scrollbar-track {
+    background: #f6f7fb;
+  }
+  ::-webkit-scrollbar-thumb {
+    background-color: #c7cce0;
+    border-radius: 9999px;
+    border: 2px solid #f6f7fb;
+  }
+  ::-webkit-scrollbar-thumb:hover {
+    background-color: #a6adcf;
+  }
+}
+
+@layer components {
+  /* Glassmorphism surface used by the sticky navbar */
+  .glass-panel {
+    @apply bg-white/70 backdrop-blur-md border-b border-white/40;
+  }
+
+  /* Thin animated gradient line — signature visual motif for the "vision/recognition"
+     theme of the product. Used once, sparingly (bottom edge of navbar). */
+  .scan-line {
+    @apply h-[2px] w-full bg-scan-line bg-[length:200%_100%] animate-scan;
+  }
+
+  /* Small uppercase label style for eyebrow/meta text (nav tags, footer meta) */
+  .label-mono {
+    @apply font-mono text-xs uppercase tracking-wider text-muted;
+  }
+}
