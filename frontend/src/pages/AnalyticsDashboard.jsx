@@ -29,7 +29,7 @@ export default function Dashboard() {
     try {
 
       const res = await axios.get(
-        "http://127.0.0.1:8000/dashboard"
+        "https://smart-retail-ai-3-82jz.onrender.com/dashboard"
       );
 
       setDashboard(res.data);
